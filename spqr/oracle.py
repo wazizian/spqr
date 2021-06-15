@@ -53,7 +53,6 @@ class OracleSubgradient:
     def seq_grad(self, w, x, y):
         return np.asarray(self.L_f_prime(w, x, y), dtype=np.float64)
 
-
 class OracleSmoothGradient:
     """Base class that instantiate the superquantile oracle for a differentiable loss
 

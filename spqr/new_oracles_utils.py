@@ -33,20 +33,20 @@ def compute_subgradient(sequence_losses, sequence_gradients, p):
 
 
 @njit
-def fast_projection(u, weights, p, rho):
+def fast_projection(u, weights, p, rho, simplex_center):
     if p == 0:
         return weights
 
     n = len(u)
     c = weights/(1 - p)
     mu = 2 * rho
-    v = u + mu * weights
+    v = u + mu * simplex_center
 
     # sorts the coordinate of v
     sorted_index = np.argsort(v)
 
     # finds the zero of the function theta prime
-    lmbda = fast_find_lmbda(v, weights, c, sorted_index, p, rho)
+    lmbda = fast_find_lmbda(v, weights, sorted_index, p, rho, c=c)
 
     # instantiate the output
     res = np.zeros(n, dtype=np.float64)
@@ -65,39 +65,43 @@ def fast_projection(u, weights, p, rho):
 
 
 @njit
-def fast_find_lmbda(v, weights, c, sorted_index, p, rho):
+def fast_find_lmbda(v, weights, sorted_index, p, rho, c=None):
     n = len(v)
     mu = 2*rho
+    if c is None:
+        c = weights/(1-p)
     set_p = np.sort(np.concatenate((v, v - mu * c)))
 
     a= 0
     b= 2 * n - 1
     m = (a + b) // 2
     while (b - a) > 1:
-        if fast_theta_prime(set_p[m], v, weights, c, sorted_index, p, rho) > 0:
+        if fast_theta_prime(set_p[m], v, weights, sorted_index, p, rho, c=c) > 0:
             b = m
-        elif fast_theta_prime(set_p[m], v, weights, c, sorted_index, p, rho) < 0:
+        elif fast_theta_prime(set_p[m], v, weights, sorted_index, p, rho, c=c) < 0:
             a = m
         else:
             return set_p[m]
         m = (a + b) // 2
 
-    if fast_theta_prime(set_p[a], v, weights, c, sorted_index, p, rho) == 0.:
+    if fast_theta_prime(set_p[a], v, weights, sorted_index, p, rho, c=c) == 0.:
         return set_p[a]
-    elif fast_theta_prime(set_p[b], v, weights, c, sorted_index, p, rho) == 0.:
+    elif fast_theta_prime(set_p[b], v, weights, sorted_index, p, rho, c=c) == 0.:
         return set_p[b]
     else:
 
-        res = set_p[a] - (fast_theta_prime(set_p[a], v, weights, c, sorted_index, p, rho) * (set_p[b] - set_p[a])) / \
-              (fast_theta_prime(set_p[b], v, weights, c, sorted_index, p, rho) -
-               fast_theta_prime(set_p[a], v, weights, c, sorted_index, p, rho))
+        res = set_p[a] - (fast_theta_prime(set_p[a], v, weights, sorted_index, p, rho, c=c) * (set_p[b] - set_p[a])) / \
+              (fast_theta_prime(set_p[b], v, weights, sorted_index, p, rho, c=c) -
+               fast_theta_prime(set_p[a], v, weights, sorted_index, p, rho, c=c))
         return res
 
 
 @njit
-def fast_theta_prime(lmbda, v, weights, c, sorted_index, p, rho):
+def fast_theta_prime(lmbda, v, weights, sorted_index, p, rho, c=None):
     n = len(v)
     mu = 2*rho
+    if c is None:
+        c = weights/(1-p)
     res = 1.0
     counter = n - 1
     while counter >= 0:

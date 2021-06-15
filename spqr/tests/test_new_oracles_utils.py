@@ -28,17 +28,16 @@ def lmbda():
 
 def test_fast_theta_prime(v, sorted_index, weights, lmbda):
     old_res = oracles_utils.fast_theta_prime(lmbda, v, sorted_index, P, RHO)
-    new_res = new_oracles_utils.fast_theta_prime(lmbda, v, weights,
-            weights/(1-P), sorted_index, P, RHO)
+    new_res = new_oracles_utils.fast_theta_prime(lmbda, v, weights, sorted_index, P, RHO)
     assert old_res == pytest.approx(new_res)
 
 def test_fast_find_lmbda(v, sorted_index, weights):
     old_res = oracles_utils.fast_find_lmbda(v, sorted_index, P, RHO)
-    new_res = new_oracles_utils.fast_find_lmbda(v, weights, weights/(1-P),  sorted_index, P, RHO)
+    new_res = new_oracles_utils.fast_find_lmbda(v, weights, sorted_index, P, RHO)
     assert old_res == pytest.approx(new_res)
 
 def test_fast_projection(v, sorted_index, weights):
     old_res = oracles_utils.fast_projection(v, P, RHO)
-    new_res = new_oracles_utils.fast_projection(v, weights, P, RHO)
+    new_res = new_oracles_utils.fast_projection(v, weights, P, RHO, weights)
     assert old_res == pytest.approx(new_res)
 
