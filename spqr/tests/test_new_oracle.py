@@ -1,9 +1,12 @@
 import numpy as np
-from sklearn.datasets import make_blobs
 import pytest
+
+from sklearn.datasets import make_blobs
+from functools import partial
 
 from .. import new_oracle
 from .. import oracle
+from .. import losses
 
 N = 100
 D = 10
@@ -12,17 +15,31 @@ KAPPA = 2
 
 gen = np.random.default_rng()
 
+def log_sigmoid(u):
+    exp_u_pos_part = np.exp(-np.clip(u, 0, None))
+    exp_u_neg_part = np.exp( np.clip(u, None, 0))
+    return np.clip(u, None, 0) - np.log(exp_u_neg_part + exp_u_pos_part)
+
+def sigmoid(u):
+    exp_u_pos_part = np.exp(-np.clip(u, 0, None))
+    exp_u_neg_part = np.exp( np.clip(u, None, 0))
+    return exp_u_neg_part/(exp_u_neg_part + exp_u_pos_part)
+
 @pytest.fixture
 def loss():
     def loss_func(w, x, y):
-        return 0.5*(y - np.dot(x, w))**2
+        n, d = x.shape
+        assert y.shape == (n,)
+        assert w.shape == (d,)
+
+        return -log_sigmoid(y * np.dot(x, w))
     return loss_func
 
 @pytest.fixture
 def loss_grad():
-    def loss_grad_func(w, x, y):
-        return (np.dot(x, w) - y)[..., None] * x
-    return loss_grad_func
+    def grad_func(w, x, y):
+        return - y[:,None] * x * sigmoid(-y * np.dot(x, w))[:, None]
+    return grad_func
 
 @pytest.fixture
 def w():
@@ -31,6 +48,8 @@ def w():
 @pytest.fixture
 def dataset():
     x, y = make_blobs(n_samples=N, n_features=D, centers=2)
+    assert x.shape == (N, D)
+    assert y.shape == (N,)
     return x, 2*y - 1
 
 METHODS = ["f", "g"]
