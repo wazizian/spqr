@@ -2,6 +2,7 @@ import numpy as np
 import pytest
 
 from sklearn.datasets import make_blobs
+from scipy.optimize import check_grad
 from functools import partial
 
 from .. import new_oracle
@@ -12,6 +13,7 @@ N = 100
 D = 10
 P = 0.8
 KAPPA = 2
+RHO = 3/2
 
 gen = np.random.default_rng()
 
@@ -65,6 +67,19 @@ def test_oracleSmoothGradient(loss, loss_grad, w, dataset, method_name):
     new_res = new_method(w, *dataset)
 
     assert old_res == pytest.approx(new_res)
+
+@pytest.mark.parametrize("no_smoothing_parameter", [0.1, 1, 10, 100])
+@pytest.mark.parametrize("sq_smoothing_parameter", [0.1, 1, 10, 100])
+def test_gradients(loss, loss_grad, w, dataset,
+        sq_smoothing_parameter, no_smoothing_parameter):
+    oracles = [
+            new_oracle.OracleSmoothGradient(loss, loss_grad, P, sq_smoothing_parameter),
+            new_oracle.OracleSmoothedNorm(no_smoothing_parameter),
+            new_oracle.OracleSmoothedWDRO(loss, loss_grad, RHO, KAPPA,
+               sq_smoothing_parameter, no_smoothing_parameter),
+            ]
+    for orc in oracles:
+        assert check_grad(orc.f, orc.g, w, *dataset) <= 1e-5
 
 @pytest.mark.parametrize("ambiguity_radius", [1/4, 1/2, 1, 3/2])
 @pytest.mark.parametrize("sq_smoothing_parameter", [0.1, 1, 10, 100])
