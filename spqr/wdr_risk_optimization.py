@@ -10,7 +10,7 @@ class WassersteinRiskOptimizer(RiskOptimizer):
         merged_params.update(kwargs)
         super().__init__(loss, loss_grad, params=merged_params)
 
-        self.params = self.default_params.copy()
+        self.params = self.default_params()
         self.params.update(params)
         self.params.update(kwargs)
 
@@ -30,7 +30,6 @@ class WassersteinRiskOptimizer(RiskOptimizer):
         else:
             raise NotImplementedError(f"algorithm: {self.params['algorithm']}")
 
-    @property
     def default_params(self):
         params = {
             # General Parameters
