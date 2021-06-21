@@ -79,7 +79,7 @@ def test_oracleSmoothedDRO(loss, loss_grad, w, dataset, ambiguity_radius,
     x, y = dataset
     n = len(x)
     losses = loss(w, *dataset)
-    inv_losses = loss(w, x, -y)
+    inv_losses = loss(w, x, 1-y)
     diff_losses = inv_losses - losses
     norm = oracle.norm_oracle.f(w, x, y)
     wdro_loss = oracle.f(w, x, y)

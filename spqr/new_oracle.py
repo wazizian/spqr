@@ -71,7 +71,7 @@ class OracleSmoothGradient(AbstractOracle):
 
 class OracleSmoothedNorm(AbstractOracle):
     def __init__(self, smoothing_parameter=0.01):
-        self.smoothing_parameter=0.01
+        self.smoothing_parameter=smoothing_parameter
     
     def f(self, w, x, y):
         norm = np.linalg.norm(w)
@@ -102,8 +102,8 @@ class OracleSmoothedWDRO(AbstractOracle):
         self.norm_oracle = OracleSmoothedNorm(smoothing_parameter=norm_smoothing_parameter)
 
         # TODO: improve efficiency by passing sequence loss vectors only to the SQ oracle
-        sq_loss = lambda w, x, y : loss(w, x, -y) - loss(w, x, y) - ambiguity_pen_labels * self.norm_oracle.f(w, x, y)
-        sq_loss_grad = lambda w, x, y : loss_grad(w, x, -y) - loss_grad(w, x, y) - ambiguity_pen_labels * self.norm_oracle.g(w, x, y)
+        sq_loss = lambda w, x, y : loss(w, x, 1-y) - loss(w, x, y) - ambiguity_pen_labels * self.norm_oracle.f(w, x, y)
+        sq_loss_grad = lambda w, x, y : loss_grad(w, x, 1-y) - loss_grad(w, x, y) - ambiguity_pen_labels * self.norm_oracle.g(w, x, y)
 
         extra_samples = np.zeros(1, dtype=np.float64)
         extra_samples_weights = np.ones(1, dtype=np.float64)
