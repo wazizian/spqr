@@ -14,7 +14,7 @@ class WDRLogisticRegression(DRLogisticRegression, WassersteinRiskOptimizer):
 
     def __init__(self, rho=0.5, kappa=0.2, mu=1.0, mu_norm=0.01, **kwargs):
 
-        DRLogisticRegression.__init__(self, **kwargs)
+        DRLogisticRegression.__init__(self, p=1-0.5*rho/kappa, mu=mu, **kwargs)
 
         params = {
             'algorithm': 'l-bfgs',

@@ -130,6 +130,7 @@ class DRLogisticRegression(RiskOptimizer, ClassifierMixin):
             self.coef_ = self.solution
 
     def logistic_loss(self, w, x, y):
+        n, d = x.shape
         return logistic_loss(w, x, y, lmbda=self.lmbda, n_features=self.n_features + self.fit_intercept,
                              n_classes=self.n_classes)
 
@@ -149,6 +150,17 @@ class DRLogisticRegression(RiskOptimizer, ClassifierMixin):
         predictions = np.argmax(probas, axis=1)
 
         return predictions
+
+    def predict_proba(self, x):
+        """ Gives a prediction of x
+                :param ``numpy.array`` x: input whose label is to predict
+                :return:  value of the prediction
+        """
+        formatted_x = np.ones((x.shape[0], self.n_features + self.fit_intercept))
+        formatted_x[:, self.fit_intercept:] = x
+        casted_sol = np.reshape(self.solution, (self.n_features + self.fit_intercept, self.n_classes))
+        probas = np.dot(formatted_x, casted_sol)
+        return probas
 
     def score(self, X, y, sample_weights=None):
         return 0

@@ -29,30 +29,26 @@ def sigmoid(u):
 
 @pytest.fixture
 def loss():
-    def loss_func(w, x, y):
-        n, d = x.shape
-        assert y.shape == (n,)
-        assert w.shape == (d,)
-
-        return -log_sigmoid(y * np.dot(x, w))
-    return loss_func
+    return partial(losses.logistic_loss, n_classes=2)
 
 @pytest.fixture
 def loss_grad():
-    def grad_func(w, x, y):
-        return - y[:,None] * x * sigmoid(-y * np.dot(x, w))[:, None]
-    return grad_func
+    return partial(losses.logistic_grad, n_classes=2)
 
 @pytest.fixture
 def w():
-    return gen.normal(size=D)
+    return gen.normal(size=2*D)
 
 @pytest.fixture
 def dataset():
     x, y = make_blobs(n_samples=N, n_features=D, centers=2)
     assert x.shape == (N, D)
     assert y.shape == (N,)
-    return x, 2*y - 1
+
+    one_hot_y = np.identity(2)[y]
+    assert one_hot_y.shape == (N, 2)
+
+    return x, one_hot_y
 
 METHODS = ["f", "g"]
 
@@ -69,16 +65,18 @@ def test_oracleSmoothGradient(loss, loss_grad, w, dataset, method_name):
     assert old_res == pytest.approx(new_res)
 
 @pytest.mark.parametrize("no_smoothing_parameter", [0.1, 1, 10, 100])
-@pytest.mark.parametrize("sq_smoothing_parameter", [0.1, 1, 10, 100])
+@pytest.mark.parametrize("sq_smoothing_parameter", [100])
 def test_gradients(loss, loss_grad, w, dataset,
         sq_smoothing_parameter, no_smoothing_parameter):
     oracles = [
-            new_oracle.OracleSmoothGradient(loss, loss_grad, P, sq_smoothing_parameter),
-            new_oracle.OracleSmoothedNorm(no_smoothing_parameter),
-            new_oracle.OracleSmoothedWDRO(loss, loss_grad, RHO, KAPPA,
-               sq_smoothing_parameter, no_smoothing_parameter),
+                oracle.OracleSmoothGradient(loss, loss_grad, P, sq_smoothing_parameter),
+            #new_oracle.OracleSmoothGradient(loss, loss_grad, P, sq_smoothing_parameter),
+            #new_oracle.OracleSmoothedNorm(no_smoothing_parameter),
+            #new_oracle.OracleSmoothedWDRO(loss, loss_grad, RHO, KAPPA,
+            #   sq_smoothing_parameter, no_smoothing_parameter),
             ]
-    for orc in oracles:
+    for i,orc in enumerate(oracles):
+        print(i)
         assert check_grad(orc.f, orc.g, w, *dataset) <= 1e-5
 
 @pytest.mark.parametrize("ambiguity_radius", [1/4, 1/2, 1, 3/2])
