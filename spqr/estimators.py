@@ -143,10 +143,7 @@ class DRLogisticRegression(RiskOptimizer, ClassifierMixin):
                 :param ``numpy.array`` x: input whose label is to predict
                 :return:  value of the prediction
         """
-        formatted_x = np.ones((x.shape[0], self.n_features + self.fit_intercept))
-        formatted_x[:, self.fit_intercept:] = x
-        casted_sol = np.reshape(self.solution, (self.n_features + self.fit_intercept, self.n_classes))
-        probas = np.dot(formatted_x, casted_sol)
+        probas = self.predict_proba(x)
         predictions = np.argmax(probas, axis=1)
 
         return predictions
@@ -162,9 +159,9 @@ class DRLogisticRegression(RiskOptimizer, ClassifierMixin):
         probas = np.dot(formatted_x, casted_sol)
         return probas
 
-    def score(self, X, y, sample_weights=None):
-        return 0
-
+    def score(self, X, y):
+        y_pred = self.predict(X)
+        return accuracy_score(y, y_pred)
 
 @njit
 def _recast_y(y, n_classes):
