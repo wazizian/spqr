@@ -22,9 +22,11 @@ def plot_classifier_comparison(names, classifiers, datasets):
 		# preprocess dataset, split into training and test part
 		dataset_train, dataset_test = ds
 		X_train, y_train = dataset_train
-		X_test, y_train, y_test = dataset_test
-		x_min, x_max = X[:, 0].min() - .5, X[:, 0].max() + .5
-		y_min, y_max = X[:, 1].min() - .5, X[:, 1].max() + .5
+		X_test, y_test = dataset_test
+		x_min = min(X_train[:, 0].min(), X_test[:, 0].min()) - .5
+		x_max = max(X_train[:, 0].max(), X_test[:, 0].max()) + .5
+		y_min = min(X_train[:, 1].min(), X_test[:, 1].min()) - .5
+		y_max = max(X_train[:, 1].max(), X_test[:, 1].max()) + .5
 		xx, yy = np.meshgrid(np.arange(x_min, x_max, h),
 							 np.arange(y_min, y_max, h))
 
