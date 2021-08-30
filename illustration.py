@@ -17,6 +17,7 @@ def main():
 	classifiers = [WDRLogisticRegression(rho, kappa, mu, mu_norm) for rho in lst_rho]
 	datasets = [
 			(make_moons(noise=0.1), make_moons(noise=0.1)),
+			(make_blobs(centers=2, cluster_std=2), make_blobs(centers=2, cluster_std=2)),
 			(make_blobs(centers=2, cluster_std=4), make_blobs(centers=2, cluster_std=4)),
 			]
 	plot_classifier_comparison(names, classifiers, datasets)
