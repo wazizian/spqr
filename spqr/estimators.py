@@ -10,6 +10,7 @@ from .losses import *
 from sklearn.base import ClassifierMixin
 from sklearn.metrics import accuracy_score
 from sklearn.preprocessing import LabelEncoder
+from scipy.special import softmax
 
 
 class DRLinearRegression(RiskOptimizer, RegressorMixin):
@@ -156,7 +157,7 @@ class DRLogisticRegression(RiskOptimizer, ClassifierMixin):
         formatted_x = np.ones((x.shape[0], self.n_features + self.fit_intercept))
         formatted_x[:, self.fit_intercept:] = x
         casted_sol = np.reshape(self.solution, (self.n_features + self.fit_intercept, self.n_classes))
-        probas = np.dot(formatted_x, casted_sol)
+        probas = softmax(np.dot(formatted_x, casted_sol), axis=1)
         return probas
 
     def score(self, X, y):
