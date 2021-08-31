@@ -6,14 +6,21 @@
 
 import numpy as np
 import matplotlib.pyplot as plt
-from matplotlib.colors import ListedColormap
+from matplotlib.colors import ListedColormap, FuncNorm
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 from sklearn.datasets import make_moons, make_circles, make_classification
 
 h = .02  # step size in the mesh
 
-def plot_classifier_comparison(names, classifiers, datasets):
+param = 10
+def forward_norm(arr):
+	return 1/(1+np.exp(-param * (arr - 0.5)))
+def backward_norm(arr):
+	return (1/param) * np.log(arr/(1 - arr)) +0.5
+normalizer = FuncNorm((forward_norm, backward_norm), vmin=0., vmax=1.)
+
+def plot_classifier_comparison(names, classifiers, datasets, levels=10):
 	assert len(names) == len(classifiers)
 	figure = plt.figure(figsize=(27, 9))
 	i = 1
@@ -56,14 +63,17 @@ def plot_classifier_comparison(names, classifiers, datasets):
 
 			# Plot the decision boundary. For that, we will assign a color to each
 			# point in the mesh [x_min, x_max]x[y_min, y_max].
-			if hasattr(clf, "decision_function"):
-				Z = clf.decision_function(np.c_[xx.ravel(), yy.ravel()])
-			else:
-				Z = clf.predict_proba(np.c_[xx.ravel(), yy.ravel()])[:, 1]
+			#if hasattr(clf, "decision_function"):
+			#	Z = clf.decision_function(np.c_[xx.ravel(), yy.ravel()])
+			#else:
+			Z = clf.predict_proba(np.c_[xx.ravel(), yy.ravel()])[:, 1]
 
 			# Put the result into a color plot
 			Z = Z.reshape(xx.shape)
-			ax.contourf(xx, yy, Z, cmap=cm, alpha=.8)
+			cs = ax.contourf(xx, yy, Z, cmap=cm, alpha=.8, levels=levels, norm=normalizer)
+			#cs = ax.contour(xx, yy, Z, cmap=cm, alpha=.8, levels=levels)
+			levels = cs.levels
+			plt.colorbar(cs)
 
 			# Plot the training points
 			ax.scatter(X_train[:, 0], X_train[:, 1], c=y_train, cmap=cm_bright,
@@ -78,7 +88,7 @@ def plot_classifier_comparison(names, classifiers, datasets):
 			ax.set_yticks(())
 			if ds_cnt == 0:
 				ax.set_title(name)
-			ax.text(xx.max() - .3, yy.min() + .3, ('%.2f' % score).lstrip('0'),
+			ax.text(xx.max() - .3, yy.min() + .3, f"{int(score*100)}%",#('%.2f' % score).lstrip('0'),
 					size=15, horizontalalignment='right')
 			i += 1
 
