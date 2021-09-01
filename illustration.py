@@ -59,8 +59,33 @@ def perturbed_illustration():
     levels = [0., 0.25, 0.45, 0.5, 0.55, 0.75, 1.]
     plot_classifier_comparison(names, classifiers, datasets, levels=levels)
 
+def spatially_perturbed_illustration():
+    N = 500
+    train_split = 0.75
+    n_train = int(0.75 * N)
+    n_test = N - n_train
+    pos = 4
+    centers = [np.array([-pos,-pos]), np.array([pos,pos])]
+    dataset = lambda n,sdevs : make_blobs(n_samples=n, centers=centers, cluster_std=sdevs)
+    sdevs = [(2.5, 5), (1, 5), (0.1, 5)]
+    datasets = [
+            (dataset(n_train, (sdev_1, sdev_2)), dataset(n_test, (sdev_2, sdev_1)))
+            for (sdev_1, sdev_2) in sdevs
+            ]
+    names = ["Logistic Regression", "SQ Logistic Regression", "WDR Logistic Regression"]
+    rho = 4*5**2
+    kappa = 1000
+    mu = 0.1
+    classifiers = [
+            LogisticRegression(penalty='none'),
+            DRLogisticRegression(p=0.1, mu=mu),
+            WDRLogisticRegression(rho=rho, kappa=kappa, mu=mu, mu_norm=mu)
+            ]
+    levels = [0., 0.25, 0.45, 0.5, 0.55, 0.75, 1.]
+    plot_classifier_comparison(names, classifiers, datasets, levels=levels)
+
 if __name__ == '__main__':
-    illustration()
+    perturbed_illustration()
 
 
 
