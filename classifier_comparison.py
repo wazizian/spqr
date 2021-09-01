@@ -1,7 +1,7 @@
 # Code source: Gaël Varoquaux
 #              Andreas Müller
 # Modified for documentation by Jaques Grobler
-# Modified to be used as a function by Waïss Azizian
+# Adapted and modified to be used as a function by Waïss Azizian
 # License: BSD 3 clause
 
 import numpy as np
@@ -10,6 +10,7 @@ from matplotlib.colors import ListedColormap, FuncNorm
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 from sklearn.datasets import make_moons, make_circles, make_classification
+from sklearn.metrics import f1_score
 
 h = .02  # step size in the mesh
 
@@ -60,6 +61,7 @@ def plot_classifier_comparison(names, classifiers, datasets, levels=10):
 			ax = plt.subplot(len(datasets), len(classifiers) + 1, i)
 			clf.fit(X_train, y_train)
 			score = clf.score(X_test, y_test)
+			f1_sc = f1_score(y_test, clf.predict(X_test)) 
 
 			# Plot the decision boundary. For that, we will assign a color to each
 			# point in the mesh [x_min, x_max]x[y_min, y_max].
@@ -88,8 +90,8 @@ def plot_classifier_comparison(names, classifiers, datasets, levels=10):
 			ax.set_yticks(())
 			if ds_cnt == 0:
 				ax.set_title(name)
-			ax.text(xx.max() - .3, yy.min() + .3, f"{int(score*100)}%",#('%.2f' % score).lstrip('0'),
-					size=15, horizontalalignment='right')
+			ax.text(xx.max() - .3, yy.min() + .3, f"Acc. {int(score*100)}%\nF1 {int(f1_sc*100)}%",#('%.2f' % score).lstrip('0'),
+					size=12, horizontalalignment='right', bbox=dict(facecolor='wheat', alpha=0.5))
 			i += 1
 
 	plt.tight_layout()
