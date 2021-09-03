@@ -9,6 +9,10 @@ from sklearn.linear_model import LogisticRegression
 from spqr import DRLogisticRegression, WDRLogisticRegression
 from classifier_comparison import plot_classifier_comparison
 
+import sys, os
+sys.path.append(os.path.dirname(sys.path[0]))
+from General import GeneralWDRLogisticRegression
+
 gen = np.random.default_rng()
 
 def illustration():
@@ -72,20 +76,21 @@ def spatially_perturbed_illustration():
             (dataset(n_train, (sdev_1, sdev_2)), dataset(n_test, (sdev_2, sdev_1)))
             for (sdev_1, sdev_2) in sdevs
             ]
-    names = ["Logistic Regression", "SQ Logistic Regression", "WDR Logistic Regression"]
-    rho = 4*5**2
+    names = ["Logistic Regression", "SQ Logistic Regression", "WDR Logistic Regression", "General WDR Logistic Regression"]
+    rho = 2*5**2
     kappa = 1000
     mu = 0.1
     classifiers = [
             LogisticRegression(penalty='none'),
             DRLogisticRegression(p=0.1, mu=mu),
-            WDRLogisticRegression(rho=rho, kappa=kappa, mu=mu, mu_norm=mu)
+            WDRLogisticRegression(rho=rho, kappa=kappa, mu=mu, mu_norm=mu),
+            GeneralWDRLogisticRegression(rho=rho, m=300, epochs=1000, lr=1e-2, scheduler_verbose=True)
             ]
     levels = [0., 0.25, 0.45, 0.5, 0.55, 0.75, 1.]
     plot_classifier_comparison(names, classifiers, datasets, levels=levels)
 
 if __name__ == '__main__':
-    perturbed_illustration()
+    illustration()
 
 
 
