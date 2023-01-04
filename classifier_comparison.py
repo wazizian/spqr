@@ -6,6 +6,7 @@
 
 import numpy as np
 import matplotlib.pyplot as plt
+
 from matplotlib.colors import ListedColormap, FuncNorm
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
@@ -21,11 +22,12 @@ def backward_norm(arr):
 	return (1/param) * np.log(arr/(1 - arr)) +0.5
 normalizer = FuncNorm((forward_norm, backward_norm), vmin=0., vmax=1.)
 
-def plot_classifier_comparison(names, classifiers, datasets, levels=10):
+def plot_classifier_comparison(names, classifiers, datasets, levels=10, save=None):
 	assert len(names) == len(classifiers)
-	figure = plt.figure(figsize=(27, 9))
+	figure = plt.figure(figsize=(32, 15))
 	i = 1
 	# iterate over datasets
+	cols = len(classifiers) + 3
 	for ds_cnt, ds in enumerate(datasets):
 		# preprocess dataset, split into training and test part
 		dataset_train, dataset_test = ds
@@ -41,14 +43,24 @@ def plot_classifier_comparison(names, classifiers, datasets, levels=10):
 		# just plot the dataset first
 		cm = plt.cm.RdBu
 		cm_bright = ListedColormap(['#FF0000', '#0000FF'])
-		ax = plt.subplot(len(datasets), len(classifiers) + 1, i)
+
+		ax = plt.subplot(len(datasets), cols, i)
 		if ds_cnt == 0:
-			ax.set_title("Input data")
+			ax.set_title("Training data")
 		# Plot the training points
 		ax.scatter(X_train[:, 0], X_train[:, 1], c=y_train, cmap=cm_bright,
 				   edgecolors='k')
+		ax.set_xlim(xx.min(), xx.max())
+		ax.set_ylim(yy.min(), yy.max())
+		ax.set_xticks(())
+		ax.set_yticks(())
+		i += 1
+
+		ax = plt.subplot(len(datasets), cols, i)
+		if ds_cnt == 0:
+			ax.set_title("Testing data")
 		# Plot the testing points
-		ax.scatter(X_test[:, 0], X_test[:, 1], c=y_test, cmap=cm_bright, alpha=0.6,
+		ax.scatter(X_test[:, 0], X_test[:, 1], c=y_test, cmap=cm_bright,
 				   edgecolors='k')
 		ax.set_xlim(xx.min(), xx.max())
 		ax.set_ylim(yy.min(), yy.max())
@@ -58,7 +70,7 @@ def plot_classifier_comparison(names, classifiers, datasets, levels=10):
 
 		# iterate over classifiers
 		for name, clf in zip(names, classifiers):
-			ax = plt.subplot(len(datasets), len(classifiers) + 1, i)
+			ax = plt.subplot(len(datasets), cols, i)
 			clf.fit(X_train, y_train)
 			score = clf.score(X_test, y_test)
 			f1_sc = f1_score(y_test, clf.predict(X_test)) 
@@ -75,7 +87,7 @@ def plot_classifier_comparison(names, classifiers, datasets, levels=10):
 			cs = ax.contourf(xx, yy, Z, cmap=cm, alpha=.8, levels=levels, norm=normalizer)
 			#cs = ax.contour(xx, yy, Z, cmap=cm, alpha=.8, levels=levels)
 			levels = cs.levels
-			plt.colorbar(cs)
+			#plt.colorbar(cs)
 
 			# Plot the training points
 			ax.scatter(X_train[:, 0], X_train[:, 1], c=y_train, cmap=cm_bright,
@@ -93,8 +105,15 @@ def plot_classifier_comparison(names, classifiers, datasets, levels=10):
 			ax.text(xx.max() - .3, yy.min() + .3, f"Acc. {int(score*100)}%\nF1 {int(f1_sc*100)}%",#('%.2f' % score).lstrip('0'),
 					size=12, horizontalalignment='right', bbox=dict(facecolor='wheat', alpha=0.5))
 			i += 1
+		# Less than ideal but will do thx to trim
+		ax = plt.subplot(len(datasets), cols, i)
+		plt.colorbar(cs, ax=ax, location='left')
+		i += 1
 
 	plt.tight_layout()
-	plt.show()
+	if save is not None:
+		plt.savefig(save)
+	#plt.show()
+
 
 
