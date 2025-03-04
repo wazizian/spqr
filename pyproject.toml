@@ -1,0 +1,27 @@
+[build-system]
+requires = ["setuptools>=42", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "spqr"
+version = "0.0.3"
+description = "Superquantile optimization toolbox"
+authors = [{name = "SPQR Authors"}]
+readme = "README.md"
+requires-python = ">=3.7"
+license = {file = "LICENSE.md"}
+dependencies = [
+    "cvxopt",
+    "numpy",
+    "scipy",
+    "scikit-learn",
+    "numba",
+]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+
+[project.urls]
+"Homepage" = "https://github.com/yassine-laguel/spqr"
