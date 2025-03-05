@@ -10,6 +10,7 @@ from .losses import *
 from sklearn.base import ClassifierMixin
 from sklearn.metrics import accuracy_score
 from sklearn.preprocessing import LabelEncoder
+import scipy.special
 
 
 class DRLinearRegression(RiskOptimizer, RegressorMixin):
@@ -148,6 +149,19 @@ class DRLogisticRegression(RiskOptimizer, ClassifierMixin):
         casted_sol = np.reshape(self.solution, (self.n_features + self.fit_intercept, self.n_classes))
         probas = np.dot(formatted_x, casted_sol)
         predictions = np.argmax(probas, axis=1)
+
+        return predictions
+
+    def predict_proba(self, x):
+        """ Gives a prediction of the proba of x
+                :param ``numpy.array`` x: input whose label is to predict
+                :return:  value of the prediction
+        """
+        formatted_x = np.ones((x.shape[0], self.n_features + self.fit_intercept))
+        formatted_x[:, self.fit_intercept:] = x
+        casted_sol = np.reshape(self.solution, (self.n_features + self.fit_intercept, self.n_classes))
+        probas = np.dot(formatted_x, casted_sol)
+        predictions = scipy.special.softmax(probas, axis=1)
 
         return predictions
 

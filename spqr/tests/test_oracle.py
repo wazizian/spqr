@@ -45,6 +45,13 @@ def dataset():
 
     return x, one_hot_y
 
+@pytest.fixture
+def binary_dataset():
+    x, y = make_blobs(n_samples=N, n_features=D, centers=2)
+    assert x.shape == (N, D)
+    assert y.shape == (N,)
+    return x, y
+
 @pytest.mark.parametrize("sq_smoothing_parameter", [1, 10, 100, 1000])
 def test_estimator_gradients(dataset, sq_smoothing_parameter):
     est = estimators.DRLogisticRegression(p=P, mu=sq_smoothing_parameter, fit_intercept=False, lmbda=0.)
@@ -59,6 +66,23 @@ def test_estimator_gradients(dataset, sq_smoothing_parameter):
     approx_grad = approx_fprime(w, orc.f, EPS, *dataset)
     print(f"{grad=}, {approx_grad=}")
     assert check_grad(orc.f, orc.g, w, *dataset, epsilon=EPS) <= 1e-4
+
+def test_logistic_regression_predict_proba_coherence(binary_dataset):
+    est = estimators.DRLogisticRegression(p=P, mu=10, fit_intercept=True, lmbda=0.)
+    x, y = binary_dataset
+    est.fit(x, y)
+    
+    # Get predictions using both methods
+    predictions = est.predict(x)
+    probabilities = est.predict_proba(x)
+    
+    # Check shapes
+    assert predictions.shape == (N,)
+    assert probabilities.shape == (N, 2)
+    
+    # Check coherence: argmax of probabilities should match predictions
+    predicted_from_proba = np.argmax(probabilities, axis=1)
+    assert np.array_equal(predictions, predicted_from_proba)
 
 @pytest.mark.parametrize("sq_smoothing_parameter", [1, 10, 100, 1000])
 def test_gradients(loss, loss_grad, w, dataset, sq_smoothing_parameter):
